@@ -1,0 +1,124 @@
+ <!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TypeRun – typing speed test</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<main class="app">
+  <header><h1>Type<b>Run</b></h1><button class="ghost" id="theme">Switch theme</button></header>
+
+  <div class="seg" role="group" aria-label="Section">
+    <button class="ghost" data-v="test">Typing test</button><button class="ghost" data-v="game">Word Rain game</button>
+  </div>
+
+  <div class="seg testonly" role="group" aria-label="Mode">
+    <button class="ghost" data-m="words">Common words</button><button class="ghost" data-m="para">Basic paragraph</button><button class="ghost" data-m="passage">Passages</button><button class="ghost" data-m="custom">Your own text</button>
+  </div>
+  <div class="opts testonly">
+    <div class="seg" id="timeSeg" role="group" aria-label="Test length">
+      <button class="ghost" data-t="15">15 s</button><button class="ghost" data-t="30">30 s</button><button class="ghost" data-t="60">1 min</button><button class="ghost" data-t="120">2 min</button><button class="ghost" data-t="180">3 min</button><button class="ghost" data-t="300">5 min</button>
+    </div>
+    <button class="ghost" id="punct" aria-pressed="false">Capitals and punctuation</button>
+    <select id="pSel" aria-label="Choose a passage"></select>
+  </div>
+  <div class="card testonly" id="customBox" hidden>
+    <label>Paste or type the text you want to practise (20 to 1,500 characters)<textarea id="custom" rows="4" maxlength="1500"></textarea></label>
+    <div class="bar" style="margin-top:.6rem"><span id="cc" style="color:var(--mute);font-size:.85rem"></span><button class="btn" id="useCustom">Use this text</button></div>
+    <p class="errp" id="cerr" role="alert"></p>
+  </div>
+
+  <section id="testWrap" class="testonly">
+    <div class="live" aria-live="off">
+      <div><b id="left">30</b><span id="leftLbl">time left</span></div>
+      <div><b class="w" id="wpm">0</b><span>words per minute</span></div>
+      <div><b id="acc">100%</b><span>accuracy</span></div>
+    </div>
+    <div class="test off" id="test">
+      <div class="view"><div id="words" aria-hidden="true"></div></div>
+      <input id="inp" aria-label="Typing input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="pause">Click here or press any key to start</div>
+    </div>
+    <p class="hint">The timer starts when you type the first letter. Press Esc to restart.</p>
+    <div style="text-align:center"><button class="ghost" id="restart">New text</button></div>
+  </section>
+
+  <section class="card res testonly" id="res" role="dialog" aria-modal="true" aria-label="Test result" hidden>
+    <div id="pb" class="pb" hidden>New personal best</div>
+    <p id="rMeta" style="color:var(--mute);margin:.2rem 0 .4rem"></p>
+    <div class="big"><span id="rWpm">0</span><small style="font-size:1.1rem;letter-spacing:0;font-weight:500;color:var(--mute)"> WPM</small></div>
+    <div class="grid">
+      <div><b id="rAcc"></b><span>accuracy</span></div>
+      <div><b id="rRaw"></b><span>raw speed (WPM)</span></div>
+      <div><b id="rOk"></b><span>correct characters</span></div>
+      <div><b id="rBad"></b><span>mistakes made</span></div>
+    </div>
+    <div class="seg"><button class="btn" id="again">Try again</button><button class="ghost" id="closeRes">Close</button></div>
+  </section>
+
+  <section id="gameWrap" hidden>
+    <div class="opts">
+      <div class="seg" id="gameSeg" role="group" aria-label="Choose a game">
+        <button class="ghost" data-g="rain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z"/></svg>Word Rain</button><button class="ghost" data-g="race"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4M5 4h12l-2 4 2 4H5"/></svg>Typing Race</button><button class="ghost" data-g="scramble"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h4c4 0 6 10 10 10h4M3 17h4c1.500 0 2.600-1.400 3.600-3M14 8c1-1.500 2-1 3-1h4M18 4l3 3-3 3M18 14l3 3-3 3"/></svg>Word Scramble</button><button class="ghost" data-g="perfect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Perfect Run</button>
+      </div>
+    </div>
+    <div class="opts">
+      <div class="seg" id="diffSeg" role="group" aria-label="Difficulty">
+        <button class="ghost" data-d="easy">Easy</button><button class="ghost" data-d="normal">Normal</button><button class="ghost" data-d="hard">Hard</button>
+      </div>
+    </div>
+    <div id="g-rain" class="gpanel">
+    <p class="gbest" id="gBest"></p>
+    <div class="live gl" aria-live="off">
+      <div><b class="w" id="gScore">0</b><span>score</span></div>
+      <div><b id="gLevel">1</b><span>level</span></div>
+      <div><b id="gLives" class="hearts"></b><span>lives left</span></div>
+      <div><b id="gCombo">x1</b><span>score multiplier</span></div>
+      <div><b id="gWpm">0</b><span>words per minute</span></div>
+    </div>
+    <div class="garea" id="garea">
+      <div id="gfield" aria-hidden="true"></div>
+      <div class="gline" aria-hidden="true"></div>
+      <div class="gbanner" id="gBanner" aria-hidden="true"></div>
+      <input id="ginp" aria-label="Type the falling words here" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="gover" id="gOver" role="status">
+        <h2 id="gTitle">Word Rain</h2>
+        <p id="gMsg"></p>
+        <div id="gPb" class="pb" hidden>New best score</div>
+        <div class="grid" id="gStats" hidden>
+          <div><b id="goScore"></b><span>score</span></div>
+          <div><b id="goLevel"></b><span>level reached</span></div>
+          <div><b id="goWords"></b><span>words destroyed</span></div>
+          <div><b id="goWpm"></b><span>words per minute</span></div>
+          <div><b id="goAcc"></b><span>accuracy</span></div>
+          <div><b id="goCombo"></b><span>longest streak</span></div>
+        </div>
+        <button class="btn" id="gGo">Start game</button>
+      </div>
+    </div>
+    <p class="hint">Type a word to destroy it before it hits the water. Space or Backspace switches word. Esc pauses.</p>
+    </div>
+    <div id="g-race" class="gpanel" hidden></div>
+    <div id="g-scramble" class="gpanel" hidden></div>
+    <div id="g-perfect" class="gpanel" hidden></div>
+  </section>
+
+  <section class="card testonly">
+    <div class="bar"><h2>Personal bests (WPM)</h2><button class="ghost" id="clear">Clear history</button></div>
+    <div class="best" id="tBest"></div>
+    <div class="best" id="pBest"></div>
+    <h2 style="margin-top:1rem">Recent tests</h2>
+    <ul id="hist"></ul>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="script.js"></script>
+<script src="fx.js"></script>
+<script src="game.js"></script>
+<script src="run.js"></script>
+</body>
+</html>
